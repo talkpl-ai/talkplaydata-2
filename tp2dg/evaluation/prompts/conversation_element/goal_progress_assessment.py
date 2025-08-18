@@ -202,3 +202,4 @@ class GoalProgressAssessmentEvaluator(BaseEvaluationTemplate):
 
 # Create the evaluator instance for easy import
 goal_progress_assessment_evaluator = GoalProgressAssessmentEvaluator()
+ 

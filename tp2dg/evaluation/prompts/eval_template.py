@@ -67,3 +67,4 @@ class BaseEvaluationTemplate(ABC):
 		Returns:
 			Dictionary containing aggregated metrics and statistics
 		"""
+ 

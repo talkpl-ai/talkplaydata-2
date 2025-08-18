@@ -172,3 +172,4 @@ class ConversationGoalPlausibilityEvaluator(BaseEvaluationTemplate):
 
 # Create the evaluator instance for easy import
 conversation_goal_plausibility_evaluator = ConversationGoalPlausibilityEvaluator()
+ 

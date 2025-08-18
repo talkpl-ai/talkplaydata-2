@@ -306,3 +306,4 @@ class MessageEvaluator(BaseEvaluationTemplate):
 
 # Create the evaluator instance for easy import
 message_evaluator = MessageEvaluator()
+ 
