@@ -1,4 +1,4 @@
-# TalkPlayData 2: An Agentic Synthetic Data Pipeline for Trimodal and Conversational Music Recommendation
+# TalkPlayData 2: An Agentic Synthetic Data Pipeline for Multimodal  Conversational Music Recommendation
 
 *talk to AI to play music!*
 
