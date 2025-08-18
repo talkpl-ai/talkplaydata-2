@@ -1,0 +1,14 @@
+class ListenerProfileCode:
+	SUCCESS = "SUCCESS"
+	INVALID_RESPONSE = "INVALID_RESPONSE"
+
+
+class ListenerTurnCode:
+	SUCCESS = "SUCCESS"
+
+
+class RecsysTurnCode:
+	SUCCESS = "SUCCESS"
+	FUZZY_MATCH = "FUZZY_MATCH"
+	NO_TRACK_FOUND = "NO_TRACK_FOUND"
+	GENERAL_ERROR = "GENERAL_ERROR" 

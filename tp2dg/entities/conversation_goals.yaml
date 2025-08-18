@@ -1,0 +1,1675 @@
+- name: Conversational Goal A-LL
+  category:
+    code: A
+    description: Audio-Based Discovery
+  specificity:
+    code: LL
+    description: Low query specificity, low target specificity
+  listener_goal: discover multiple songs with good sound quality and pleasant audio characteristics
+  listener_expertise: low
+  queries:
+    initial:
+      - example: "Play something that sounds good"
+        reaction:
+          - bm25(tags, "good quality popular")
+          - sql(popularity > 60)
+      - example: "Give me some nice background music to do work"
+        reaction:
+          - bm25(tags, "ambient instrumental calm")
+          - embsim(audio)
+    iteration:
+      - example: "More upbeat please"
+        reaction:
+          - sql(tempo > 120)
+          - embsim(audio)
+      - example: "Yes but maybe with guitar"
+        reaction:
+          - bm25(tags, "guitar")
+          - embsim(audio)
+          - attend(audio)
+    achieved:
+      - example: "Perfect! This is exactly what I wanted"
+        reaction:
+          - embsim(audio)
+          - embsim(coocur)
+      - example: "Great, now surprise me with something different"
+        reaction:
+          - embsim(audio, diversity=high)
+          - attend(audio)
+
+- name: Conversational Goal A-HL
+  category:
+    code: A
+    description: Audio-Based Discovery
+  specificity:
+    code: HL
+    description: High query specificity, low target specificity
+  listener_goal: find multiple songs matching specific audio characteristics (distorted guitar, driving bass, 140 BPM, minor key)
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "Find songs with distorted guitar, driving bass, around 140 BPM, minor key"
+        reaction:
+          - sql(tempo between 135-145)
+          - sql(key contains "minor")
+          - bm25(tags, "distorted guitar bass")
+      - example: "Show me some heavy rock with a strong rhythm section, fast tempo"
+        reaction:
+          - bm25(tags, "heavy rock strong rhythm fast tempo")
+          - sql(tempo > 130)
+          - embsim(audio)
+    iteration:
+      - example: "Too heavy, I want lighter distortion"
+        reaction:
+          - sql(popularity > 50)
+          - embsim(audio)
+          - attend(audio)
+      - example: "Yes, more melodic but keep the energy"
+        reaction:
+          - bm25(tags, "melodic energetic")
+          - embsim(audio)
+          - attend(audio)
+    achieved:
+      - example: "Perfect! These three songs nail the sound I want"
+        reaction:
+          - embsim(audio, multi_seed=true)
+      - example: "Show me who makes this style of music"
+        reaction:
+          - sql(artist_name, group_by=true)
+          - embsim(metadata)
+
+- name: Conversational Goal A-LH
+  category:
+    code: A
+    description: Audio-Based Discovery
+  specificity:
+    code: LH
+    description: Low query specificity, high target specificity
+  listener_goal: find one specific song remembered by its distinctive guitar riff and bluesy sound
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "That song with the really distinctive guitar riff... kinda bluesy?"
+        reaction:
+          - bm25(tags, "guitar riff blues")
+          - embsim(audio)
+          - attend(audio)
+      - example: "I'm thinking of a classic rock song, heavy on the guitar, a bit melancholic"
+        reaction:
+          - bm25(tags, "classic rock guitar melancholic")
+          - embsim(audio)
+    iteration:
+      - example: "Not quite, it's more modern sounding"
+        reaction:
+          - sql(track_release_date > 2010)
+          - embsim(audio)
+          - attend(audio)
+      - example: "It has this really memorable opening riff"
+        reaction:
+          - bm25(caption, "opening riff memorable")
+          - embsim(audio)
+          - attend(audio)
+    achieved:
+      - example: "YES! That's exactly the song I was thinking of!"
+        reaction:
+          - confirm_match=true
+      - example: "What album is this from? I want to hear more"
+        reaction:
+          - sql(album_name, track_id=found_track)
+          - embsim(coocur)
+
+- name: Conversational Goal A-HH
+  category:
+    code: A
+    description: Audio-Based Discovery
+  specificity:
+    code: HH
+    description: High query specificity, high target specificity
+  listener_goal: identify one specific song from an uploaded audio snippet
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "What song is this? [uploads 10-second audio clip]"
+        reaction:
+          - embsim(audio, exact_match=true)
+          - attend(audio)
+      - example: "Can you identify this song from my humming? [user hums melody]"
+        reaction:
+          - embsim(audio, exact_match=true)
+          - attend(audio)
+    iteration:
+      - example: "That's it! Perfect match"
+        reaction:
+          - confirm_exact_match=true
+    achieved:
+      - example: "Great! Show me the full album this is from"
+        reaction:
+          - sql(album_tracks, album_id=matched_album)
+      - example: "Are there other songs that sound exactly like this?"
+        reaction:
+          - embsim(audio)
+          - attend(audio)
+
+- name: Conversational Goal B-LL
+  category:
+    code: B
+    description: Lyrical Discovery
+  specificity:
+    code: LL
+    description: Low query specificity, low target specificity
+  listener_goal: discover multiple songs based on lyrical content, themes, or storytelling elements
+  listener_expertise: low
+  queries:
+    initial:
+      - example: "Songs about love"
+        reaction:
+          - bm25(lyrics, "love")
+          - embsim(lyrics)
+      - example: "Songs that tell stories"
+        reaction:
+          - bm25(lyrics, "story narrative storytelling")
+          - embsim(lyrics)
+    iteration:
+      - example: "Not breakup songs, happy love"
+        reaction:
+          - bm25(tags, "upbeat positive")
+          - sql(lyrics not contains "breakup heartbreak")
+      - example: "More epic tales, less personal stories"
+        reaction:
+          - bm25(lyrics, "epic tale legend mythology")
+          - sql(duration > 240)
+    achieved:
+      - example: "These are perfect! They capture the feeling I want"
+        reaction:
+          - embsim(lyrics)
+          - embsim(coocur)
+      - example: "Perfect! I love getting lost in these lyrical journeys"
+        reaction:
+          - embsim(lyrics)
+          - embsim(coocur)
+
+- name: Conversational Goal B-HL
+  category:
+    code: B
+    description: Lyrical Discovery
+  specificity:
+    code: HL
+    description: High query specificity, low target specificity
+  listener_goal: find multiple songs with specific lyrical characteristics and detailed storytelling elements
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "I want breakup songs with weather metaphors, written from a female perspective, in pop style"
+        reaction:
+          - bm25(lyrics, "rain storm weather wind")
+          - sql(tags contains "pop female vocals")
+      - example: "I want murder ballads from Appalachian tradition, acoustic, minor key, with detailed storytelling"
+        reaction:
+          - bm25(tags, "murder ballad Appalachian acoustic")
+          - sql(key contains "minor")
+          - embsim(lyrics)
+          - attend(text.lyrics)
+    iteration:
+      - example: "Less dramatic, more about acceptance and healing"
+        reaction:
+          - embsim(lyrics)
+          - attend(text.lyrics)
+      - example: "Include modern interpretations of this theme"
+        reaction:
+          - sql(track_release_date > 1990)
+          - embsim(lyrics)
+          - attend(text.lyrics)
+    achieved:
+      - example: "This is exactly the emotional journey I wanted"
+        reaction:
+          - embsim(lyrics)
+          - embsim(coocur)
+      - example: "This is exactly the type of narrative music I was hoping for"
+        reaction:
+          - embsim(lyrics)
+          - embsim(coocur)
+
+- name: Conversational Goal B-LH
+  category:
+    code: B
+    description: Lyrical Discovery
+  specificity:
+    code: LH
+    description: Low query specificity, high target specificity
+  listener_goal: find one specific song remembered by vague lyrical content or story elements
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "That song about... something with dancing in the rain?"
+        reaction:
+          - bm25(lyrics, "dancing rain", fuzzy=true)
+          - attend(text.lyrics)
+      - example: "That song about the coal miner... tragic ending"
+        reaction:
+          - bm25(lyrics, "coal miner tragic")
+          - embsim(lyrics)
+          - attend(text.lyrics)
+    iteration:
+      - example: "Not that one, it's more upbeat and energetic"
+        reaction:
+          - sql(tempo > 120)
+          - embsim(lyrics)
+          - attend(text.lyrics)
+      - example: "Maybe from the 70s, male vocals"
+        reaction:
+          - sql(track_release_date between "1970-1979")
+          - sql(tags contains "male vocals")
+    achieved:
+      - example: "YES! That's exactly the song I was trying to remember!"
+        reaction:
+          - confirm_target_found=true
+      - example: "That's it! So powerful and sad. Exactly the one"
+        reaction:
+          - confirm_story_match=true
+
+- name: Conversational Goal B-HH
+  category:
+    code: B
+    description: Lyrical Discovery
+  specificity:
+    code: HH
+    description: High query specificity, high target specificity
+  listener_goal: find songs containing exact lyrical phrases or specific narrative songs
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "Find songs with the exact phrase 'dancing in the moonlight on a Tuesday'"
+        reaction:
+          - bm25(lyrics, "dancing in the moonlight on a Tuesday", exact=true)
+      - example: "Play 'The River' by Bruce Springsteen"
+        reaction:
+          - sql(track_name="The River" AND artist_name="Bruce Springsteen")
+    iteration:
+      - example: "Perfect! That's exactly what I was looking for"
+        reaction:
+          - confirm_exact_phrase=true
+      - example: "Perfect storytelling"
+        reaction:
+          - confirm_exact_story=true
+    achieved:
+      - example: "Are there other songs with similarly specific imagery?"
+        reaction:
+          - bm25(lyrics, "moonlight Tuesday specific")
+          - embsim(lyrics)
+      - example: "That's the song! A masterpiece"
+        reaction:
+          - embsim(lyrics)
+
+- name: Conversational Goal C-LL
+  category:
+    code: C
+    description: Visual-Musical Connections
+  specificity:
+    code: LL
+    description: Low query specificity, low target specificity
+  listener_goal: discover multiple songs that have colorful, vibrant visual aesthetics matching upbeat music
+  listener_expertise: low
+  queries:
+    initial:
+      - example: "Music that looks colorful and vibrant"
+        reaction:
+          - bm25(tags, "colorful vibrant bright")
+          - embsim(image)
+          - attend(image)
+      - example: "Show me songs with cool album art"
+        reaction:
+          - embsim(image, diversity=high)
+          - attend(image)
+    iteration:
+      - example: "More psychedelic and trippy looking"
+        reaction:
+          - embsim(image)
+          - attend(image)
+      - example: "Yes! The colors and sounds work together perfectly"
+        reaction:
+          - embsim(image)
+          - embsim(audio)
+          - attend(image)
+          - attend(audio)
+    achieved:
+      - example: "This combination of visuals and music is amazing!"
+        reaction:
+          - embsim(image)
+          - embsim(audio)
+          - embsim(coocur)
+      - example: "Show me the actual album artwork for these"
+        reaction:
+          - display_album_art=true
+          - sql(album_name)
+
+- name: Conversational Goal C-HL
+  category:
+    code: C
+    description: Visual-Musical Connections
+  specificity:
+    code: HL
+    description: High query specificity, low target specificity
+  listener_goal: find multiple songs with geometric blue/purple album art that match electronic/ambient sound
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "I want songs with geometric patterns in blue and purple album art, with electronic ambient sound"
+        reaction:
+          - embsim(image)
+          - sql(tags contains "electronic ambient")
+          - attend(image)
+      - example: "Find me some electronic music with minimalist album covers, dark colors"
+        reaction:
+          - sql(tags contains "electronic")
+          - embsim(image, target="minimalist dark colors")
+          - attend(image)
+    iteration:
+      - example: "More organic shapes but keep the same color palette"
+        reaction:
+          - embsim(image)
+          - attend(image)
+      - example: "Perfect! The visual-audio aesthetic is exactly what I wanted"
+        reaction:
+          - embsim(image)
+          - embsim(audio)
+          - attend(image)
+          - attend(audio)
+    achieved:
+      - example: "This is the perfect aesthetic match I was looking for"
+        reaction:
+          - embsim(image)
+          - embsim(audio)
+          - embsim(coocur)
+      - example: "Who are the visual artists behind these album covers?"
+        reaction:
+          - sql(album_art_artist, group_by=true)
+          - embsim(metadata)
+
+- name: Conversational Goal C-LH
+  category:
+    code: C
+    description: Visual-Musical Connections
+  specificity:
+    code: LH
+    description: Low query specificity, high target specificity
+  listener_goal: find one specific album remembered by its distinctive abstract/surreal cover art
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "That album with the weird abstract cover... kinda surreal looking?"
+        reaction:
+          - embsim(image)
+          - bm25(caption, "abstract surreal")
+          - attend(image)
+      - example: "I'm thinking of an album with a really unique, maybe disturbing, cover art"
+        reaction:
+          - embsim(image, target="unique disturbing")
+          - attend(image)
+    iteration:
+      - example: "It's more recent, I think from the 2010s"
+        reaction:
+          - sql(track_release_date between "2010-2019")
+          - embsim(image)
+          - attend(image)
+      - example: "Yes, it has these flowing, dream-like shapes"
+        reaction:
+          - embsim(image)
+          - attend(image)
+    achieved:
+      - example: "That's it! I'd recognize that cover anywhere"
+        reaction:
+          - confirm_visual_match=true
+      - example: "Play the most popular song from this album"
+        reaction:
+          - sql(popularity, album_id=matched_album, order_by=desc, limit=1)
+
+- name: Conversational Goal C-HH
+  category:
+    code: C
+    description: Visual-Musical Connections
+  specificity:
+    code: HH
+    description: High query specificity, high target specificity
+  listener_goal: identify one specific album from an uploaded image of its cover art
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "What album is this? [uploads album cover image]"
+        reaction:
+          - embsim(image, exact_match=true)
+          - attend(image)
+      - example: "Can you tell me the artist and album for this artwork? [uploads album cover image]"
+        reaction:
+          - embsim(image, exact_match=true)
+          - attend(image)
+    iteration:
+      - example: "Perfect match! That's exactly the album"
+        reaction:
+          - confirm_exact_visual=true
+    achieved:
+      - example: "Show me all the tracks from this album"
+        reaction:
+          - sql(track_list, album_id=matched_album)
+      - example: "Are there other albums with similar visual style?"
+        reaction:
+          - embsim(image)
+          - attend(image)
+
+- name: Conversational Goal D-LL
+  category:
+    code: D
+    description: Contextual & Situational
+  specificity:
+    code: LL
+    description: Low query specificity, low target specificity
+  listener_goal: find multiple songs suitable for general work/study background music
+  listener_expertise: low
+  queries:
+    initial:
+      - example: "Music for working and studying"
+        reaction:
+          - bm25(tags, "focus work study concentration")
+      - example: "I need some good background music"
+        reaction:
+          - bm25(tags, "background ambient easy listening")
+          - embsim(audio)
+    iteration:
+      - example: "Not too distracting, maybe instrumental"
+        reaction:
+          - sql(lyrics = null)
+          - bm25(tags, "instrumental ambient")
+      - example: "Perfect! This helps me concentrate"
+        reaction:
+          - embsim(audio)
+          - embsim(tags)
+          - attend(audio)
+    achieved:
+      - example: "This creates the perfect work atmosphere"
+        reaction:
+          - embsim(coocur)
+          - embsim(tags)
+      - example: "How long would this playlist be?"
+        reaction:
+          - sql(sum_duration, playlist=current_selection)
+
+- name: Conversational Goal D-HL
+  category:
+    code: D
+    description: Contextual & Situational
+  specificity:
+    code: HL
+    description: High query specificity, low target specificity
+  listener_goal: find multiple songs for very specific context (late-night coding, rainy weather, focused but not intense)
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "I need music for coding at 2 AM, it's raining, I want focus but not too intense"
+        reaction:
+          - bm25(tags, "focus coding late night rain")
+          - sql(tempo between 80-120)
+      - example: "Give me some contemplative music for a foggy morning hike"
+        reaction:
+          - bm25(tags, "contemplative morning hike foggy")
+          - embsim(audio)
+    iteration:
+      - example: "Less electronic sounds, more organic and natural"
+        reaction:
+          - sql(tags not contains "electronic synthetic")
+          - embsim(audio)
+          - attend(audio)
+      - example: "Yes, this has the perfect late-night coding vibe"
+        reaction:
+          - embsim(audio)
+          - embsim(tags)
+          - attend(audio)
+    achieved:
+      - example: "Perfect! This is exactly what I needed for this situation"
+        reaction:
+          - embsim(coocur)
+          - embsim(tags)
+      - example: "Save this as my 'Late Night Coding' playlist"
+        reaction:
+          - create_playlist(name="Late Night Coding")
+
+- name: Conversational Goal D-LH
+  category:
+    code: D
+    description: Contextual & Situational
+  specificity:
+    code: LH
+    description: Low query specificity, high target specificity
+  listener_goal: find one specific song that's perfect for driving but can't remember the name
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "That perfect driving song... I can't remember the name"
+        reaction:
+          - bm25(tags, "driving road trip energy")
+          - embsim(tags)
+          - attend(text.tags)
+      - example: "I'm looking for a song that gets me pumped up for long trips, maybe a classic rock anthem"
+        reaction:
+          - bm25(tags, "pumping long trips classic rock anthem")
+          - embsim(audio)
+    iteration:
+      - example: "It's more rock-ish, with heavy guitar"
+        reaction:
+          - sql(tags contains "rock guitar heavy")
+          - embsim(audio)
+          - attend(audio)
+      - example: "Yes! It always gets me pumped up for long drives"
+        reaction:
+          - bm25(tags, "energetic pumping driving")
+          - embsim(audio)
+    achieved:
+      - example: "YES! That's my go-to driving anthem!"
+        reaction:
+          - confirm_contextual_match=true
+      - example: "Build me a whole road trip playlist around this song"
+        reaction:
+          - embsim(audio)
+          - embsim(coocur)
+          - embsim(tags)
+
+- name: Conversational Goal D-HH
+  category:
+    code: D
+    description: Contextual & Situational
+  specificity:
+    code: HH
+    description: High query specificity, high target specificity
+  listener_goal: play one specific song by exact title and artist
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "Play 'Born to Be Wild' by Steppenwolf"
+        reaction:
+          - sql(track_name="Born to Be Wild" AND artist_name="Steppenwolf")
+      - example: "Can you play 'Bohemian Rhapsody' by Queen?"
+        reaction:
+          - sql(track_name="Bohemian Rhapsody" AND artist_name="Queen")
+    iteration:
+      - example: "Perfect! That's exactly what I wanted"
+        reaction:
+          - confirm_exact_match=true
+    achieved:
+      - example: "Great! Now give me more classic rock driving songs"
+        reaction:
+          - sql(tags contains "classic rock driving")
+          - embsim(audio)
+          - embsim(coocur)
+      - example: "What album is this song from?"
+        reaction:
+          - sql(album_name, track_id=matched_track)
+
+- name: Conversational Goal E-LL
+  category:
+    code: E
+    description: Interactive Refinement
+  specificity:
+    code: LL
+    description: Low query specificity, low target specificity
+  listener_goal: explore and discover new music through open-ended interaction, staying engaged throughout
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "Surprise me with something completely new"
+        reaction:
+          - embsim(audio, diversity=high)
+          - embsim(tags, exploration=true)
+      - example: "I'm in the mood to discover something different today"
+        reaction:
+          - embsim(audio, diversity=high)
+          - embsim(coocur, exploration=true)
+    iteration:
+      - example: "Interesting! But maybe something more familiar sounding"
+        reaction:
+          - embsim(audio)
+          - embsim(coocur)
+          - attend(audio)
+      - example: "Yes, this hits a nice sweet spot for me"
+        reaction:
+          - embsim(audio)
+          - embsim(coocur)
+          - attend(audio)
+    achieved:
+      - example: "Perfect! This is exactly what I was hoping to discover"
+        reaction:
+          - embsim(audio)
+          - embsim(coocur)
+      - example: "Keep going in this direction, show me more"
+        reaction:
+          - embsim(audio)
+          - embsim(coocur)
+          - embsim(tags)
+
+- name: Conversational Goal E-HL
+  category:
+    code: E
+    description: Interactive Refinement
+  specificity:
+    code: HL
+    description: High query specificity, low target specificity
+  listener_goal: progress through a specific musical journey from Beatles to modern indie rock while avoiding heavy music
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "Start with Beatles, then gradually move toward modern indie rock, but avoid anything too heavy"
+        reaction:
+          - sql(artist_name contains "Beatles")
+          - embsim(metadata)
+      - example: "I want to explore the evolution of rock music, starting from the 60s and moving forward"
+        reaction:
+          - sql(track_release_date between "1960-1969")
+          - bm25(tags, "rock")
+          - embsim(metadata)
+    iteration:
+      - example: "Good! Now move toward 70s rock that influenced indie"
+        reaction:
+          - sql(track_release_date between "1970-1979")
+          - embsim(audio)
+          - embsim(metadata)
+      - example: "Perfect progression! Now bring it to modern indie rock"
+        reaction:
+          - sql(tags contains "indie rock modern")
+          - embsim(audio)
+          - attend(audio)
+    achieved:
+      - example: "Excellent! This musical journey is exactly what I wanted"
+        reaction:
+          - embsim(audio)
+          - embsim(metadata)
+          - embsim(coocur)
+      - example: "Continue this evolution further into current indie"
+        reaction:
+          - sql(track_release_date > 2020)
+          - embsim(audio)
+          - embsim(tags)
+
+- name: Conversational Goal E-LH
+  category:
+    code: E
+    description: Interactive Refinement
+  specificity:
+    code: LH
+    description: Low query specificity, high target specificity
+  listener_goal: find what specifically they like about a seed song through guided discovery, leading to one key realization
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "I love this song but I can't describe what I like about it"
+        reaction:
+          - embsim(audio)
+          - embsim(lyrics)
+          - embsim(tags)
+          - attend(audio)
+          - attend(text.lyrics)
+      - example: "What makes this song so captivating to me? I can't put my finger on it."
+        reaction:
+          - embsim(audio)
+          - embsim(lyrics)
+          - attend(audio)
+    iteration:
+      - example: "Closer! There's something specific that really resonates"
+        reaction:
+          - embsim(audio)
+          - attend(audio)
+      - example: "I think it's the chord progression! That's what I love"
+        reaction:
+          - sql(chord contains identified_pattern)
+          - embsim(metadata)
+    achieved:
+      - example: "YES! It's definitely the chord progression that hooks me"
+        reaction:
+          - confirm_musical_element=true
+      - example: "Find me more songs with similar chord patterns"
+        reaction:
+          - sql(chord similar)
+          - embsim(metadata)
+          - embsim(audio)
+
+- name: Conversational Goal E-HH
+  category:
+    code: E
+    description: Interactive Refinement
+  specificity:
+    code: HH
+    description: High query specificity, high target specificity
+  listener_goal: find songs with identical technical musical characteristics to a specific reference song
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "Find songs with the same key, tempo, and chord progression as 'Wonderwall' by Oasis"
+        reaction:
+          - sql(track_name="Wonderwall" AND artist_name="Oasis")
+          - sql(key=matched_key AND tempo=matched_tempo AND chord=matched_chord)
+      - example: "List all songs that match the exact BPM and key of 'Billie Jean' by Michael Jackson"
+        reaction:
+          - sql(track_name="Billie Jean" AND artist_name="Michael Jackson")
+          - sql(key=matched_key AND tempo=matched_tempo)
+    iteration:
+      - example: "Perfect! These match the musical structure exactly"
+        reaction:
+          - confirm_technical_match=true
+    achieved:
+      - example: "Excellent! These have the exact same musical DNA"
+        reaction:
+          - embsim(metadata)
+          - embsim(audio)
+      - example: "Now expand to similar but not identical chord patterns"
+        reaction:
+          - sql(chord similar_pattern)
+          - embsim(metadata)
+
+- name: Conversational Goal F-LL
+  category:
+    code: F
+    description: Metadata-Rich Exploration
+  specificity:
+    code: LL
+    description: Low query specificity, low target specificity
+  listener_goal: explore and discover various jazz music without specific constraints
+  listener_expertise: low
+  queries:
+    initial:
+      - example: "I want to explore jazz music"
+        reaction:
+          - bm25(tags, "jazz")
+          - embsim(tags)
+      - example: "Play me some classical music"
+        reaction:
+          - bm25(tags, "classical")
+          - embsim(tags)
+    iteration:
+      - example: "More traditional sounding, less experimental"
+        reaction:
+          - sql(tags contains "traditional jazz")
+          - sql(tags not contains "experimental fusion")
+      - example: "Yes, this sounds like classic jazz to me"
+        reaction:
+          - embsim(audio)
+          - embsim(tags)
+          - attend(audio)
+    achieved:
+      - example: "Perfect! This is what I think of as real jazz"
+        reaction:
+          - embsim(tags)
+          - embsim(coocur)
+      - example: "Show me how this style evolved over time"
+        reaction:
+          - sql(track_release_date, order_by=asc)
+          - embsim(metadata)
+
+- name: Conversational Goal F-HL
+  category:
+    code: F
+    description: Metadata-Rich Exploration
+  specificity:
+    code: HL
+    description: High query specificity, low target specificity
+  listener_goal: find multiple bebop jazz recordings with specific characteristics (live, saxophone, 1950s-60s, Blue Note label)
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "I want bebop jazz with live recordings, featuring saxophone solos, from the 1950s-60s, preferably Blue Note Records"
+        reaction:
+          - sql(tags contains "bebop live saxophone")
+          - sql(track_release_date between "1950-1969")
+          - sql(tags contains "Blue Note")
+      - example: "Find me some psychedelic rock from the late 60s, with long guitar solos and strong basslines"
+        reaction:
+          - bm25(tags, "psychedelic rock guitar solos basslines")
+          - sql(track_release_date between "1965-1969")
+          - embsim(audio)
+    iteration:
+      - example: "Include studio recordings too, not just live"
+        reaction:
+          - sql(remove_filter="live")
+          - embsim(metadata)
+          - attend(text.metadata)
+      - example: "Perfect! This is the definitive bebop collection I wanted"
+        reaction:
+          - embsim(metadata)
+          - embsim(tags)
+          - embsim(coocur)
+    achieved:
+      - example: "Excellent! This captures the essence of the bebop era perfectly"
+        reaction:
+          - embsim(metadata)
+          - embsim(tags)
+      - example: "Now show me contemporary artists doing similar bebop"
+        reaction:
+          - sql(track_release_date > 2000)
+          - embsim(audio)
+          - embsim(tags)
+
+- name: Conversational Goal F-LH
+  category:
+    code: F
+    description: Metadata-Rich Exploration
+  specificity:
+    code: LH
+    description: Low query specificity, high target specificity
+  listener_goal: identify a specific jazz musician (Miles Davis) and album (Kind of Blue) from vague memory
+  listener_expertise: low
+  queries:
+    initial:
+      - example: "That famous jazz trumpet player... Miles something?"
+        reaction:
+          - bm25(artist_name, "Miles jazz trumpet", fuzzy=true)
+          - embsim(metadata)
+          - attend(text.metadata)
+      - example: "I'm trying to remember a jazz album from the 50s, a very iconic one, maybe a blue cover?"
+        reaction:
+          - bm25(tags, "jazz iconic")
+          - sql(track_release_date between "1950-1959")
+          - embsim(image)
+    iteration:
+      - example: "Yes, Miles Davis! The album with the blue cover"
+        reaction:
+          - sql(artist_name="Miles Davis")
+          - bm25(album_name, "blue")
+          - embsim(image)
+      - example: "That's it! Kind of Blue! Classic album"
+        reaction:
+          - sql(album_name="Kind of Blue")
+          - embsim(metadata)
+    achieved:
+      - example: "Perfect! That's exactly what I was trying to remember"
+        reaction:
+          - confirm_album_identification=true
+      - example: "Play the most famous song from this album"
+        reaction:
+          - sql(popularity, album_name="Kind of Blue", order_by=desc, limit=1)
+
+- name: Conversational Goal F-HH
+  category:
+    code: F
+    description: Metadata-Rich Exploration
+  specificity:
+    code: HH
+    description: High query specificity, high target specificity
+  listener_goal: find one exact recording with precise metadata specifications
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "I want Miles Davis, 'Kind of Blue' album, track 3, from the original 1959 Columbia Records pressing"
+        reaction:
+          - sql(artist_name="Miles Davis" AND album_name="Kind of Blue" AND track_number=3 AND track_release_date="1959" AND label="Columbia")
+      - example: "Find the 1971 remastered version of 'Led Zeppelin IV', track 4"
+        reaction:
+          - sql(album_name="Led Zeppelin IV" AND track_number=4 AND track_release_date="1971" AND tags contains "remastered")
+    iteration:
+      - example: "That's exactly the specific recording I wanted"
+        reaction:
+          - confirm_exact_metadata=true
+    achieved:
+      - example: "Perfect! This is the definitive version"
+        reaction:
+          - embsim(metadata)
+      - example: "Show me all different pressings and remasters of this track"
+        reaction:
+          - sql(track_name=matched_track AND artist_name="Miles Davis")
+          - embsim(metadata)
+
+- name: Conversational Goal G-LL
+  category:
+    code: G
+    description: Mood & Emotion-Based
+  specificity:
+    code: LL
+    description: Low query specificity, low target specificity
+  listener_goal: find multiple uplifting songs to improve mood and feel happier
+  listener_expertise: low
+  queries:
+    initial:
+      - example: "I need something to cheer me up"
+        reaction:
+          - bm25(tags, "happy upbeat positive cheerful")
+          - embsim(lyrics)
+      - example: "Play some happy music"
+        reaction:
+          - bm25(tags, "happy joy lighthearted")
+          - embsim(audio)
+    iteration:
+      - example: "Not too energetic, more gentle happiness"
+        reaction:
+          - sql(tempo < 120)
+          - embsim(audio)
+          - attend(audio)
+      - example: "Yes, this lifts my spirits without being overwhelming"
+        reaction:
+          - embsim(audio)
+          - embsim(lyrics)
+          - attend(text.lyrics)
+    achieved:
+      - example: "Perfect! This is exactly what I needed to feel better"
+        reaction:
+          - embsim(lyrics)
+          - embsim(coocur)
+      - example: "Make me a daily mood booster playlist"
+        reaction:
+          - embsim(coocur)
+          - create_playlist(name="Daily Mood Booster")
+
+- name: Conversational Goal G-HL
+  category:
+    code: G
+    description: Mood & Emotion-Based
+  specificity:
+    code: HL
+    description: High query specificity, low target specificity
+  listener_goal: find multiple songs matching complex emotional criteria (melancholic but not depressing, acoustic, rainy day vibes, indie folk)
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "I want melancholic but not depressing music, with acoustic guitar, perfect for rainy days, indie folk style"
+        reaction:
+          - bm25(tags, "melancholic acoustic guitar rainy indie folk")
+          - embsim(lyrics)
+          - attend(text.lyrics)
+      - example: "Find songs that are introspective and calm, with a slightly sad but hopeful feel, preferably instrumental"
+        reaction:
+          - bm25(tags, "introspective calm sad hopeful instrumental")
+          - embsim(audio)
+    iteration:
+      - example: "Add some subtle string arrangements"
+        reaction:
+          - sql(tags contains "strings orchestral")
+          - embsim(audio)
+          - attend(audio)
+      - example: "Perfect! This captures the exact rainy day contemplation mood"
+        reaction:
+          - embsim(audio)
+          - embsim(lyrics)
+          - embsim(tags)
+    achieved:
+      - example: "This is the perfect soundtrack for introspective rainy afternoons"
+        reaction:
+          - embsim(coocur)
+          - embsim(tags)
+      - example: "Create seasonal playlists with similar emotional progressions"
+        reaction:
+          - embsim(lyrics)
+          - embsim(audio)
+          - embsim(coocur)
+          - create_playlist(name="Seasonal Moods")
+
+- name: Conversational Goal G-LH
+  category:
+    code: G
+    description: Mood & Emotion-Based
+  specificity:
+    code: LH
+    description: Low query specificity, high target specificity
+  listener_goal: find one specific song that consistently evokes a nostalgic feeling, remembered by vague emotional and sonic cues
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "That song that always makes me nostalgic... soft vocals, piano"
+        reaction:
+          - bm25(tags, "nostalgic soft vocals piano")
+          - embsim(lyrics)
+          - embsim(audio)
+          - attend(text.lyrics)
+          - attend(audio)
+      - example: "I'm thinking of a calming song that feels like a warm hug, maybe a lullaby vibe"
+        reaction:
+          - bm25(tags, "calming warm hug lullaby")
+          - embsim(audio)
+    iteration:
+      - example: "Female vocalist, I think from the 2000s"
+        reaction:
+          - sql(tags contains "female vocals")
+          - sql(track_release_date between "2000-2009")
+          - embsim(lyrics)
+          - attend(text.lyrics)
+      - example: "Yes! It has this gentle, soaring melody"
+        reaction:
+          - bm25(caption, "gentle soaring melody")
+          - embsim(audio)
+          - attend(audio)
+    achieved:
+      - example: "YES! That's my nostalgia trigger song! Gets me every time"
+        reaction:
+          - confirm_emotional_match=true
+      - example: "Find my other nostalgic favorites in my listening history"
+        reaction:
+          - embsim(coocur, filter_by_user_history=true, mood="nostalgic")
+
+- name: Conversational Goal G-HH
+  category:
+    code: G
+    description: Mood & Emotion-Based
+  specificity:
+    code: HH
+    description: High query specificity, high target specificity
+  listener_goal: play a specific version of a song known for its distinct mood
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "Play 'Mad World' by Gary Jules version"
+        reaction:
+          - sql(track_name="Mad World" AND artist_name="Gary Jules")
+      - example: "I want the acoustic version of 'Layla' by Eric Clapton, not the electric one"
+        reaction:
+          - sql(track_name="Layla" AND artist_name="Eric Clapton" AND tags contains "acoustic")
+    iteration:
+      - example: "That's the haunting version I wanted"
+        reaction:
+          - confirm_specific_version=true
+    achieved:
+      - example: "Perfect! This version sets the exact mood"
+        reaction:
+          - embsim(audio)
+          - embsim(lyrics)
+      - example: "More cover versions that completely reimagine originals like this"
+        reaction:
+          - sql(tags contains "cover version reimagined")
+
+- name: Conversational Goal H-LL
+  category:
+    code: H
+    description: Artist & Discography Discovery
+  specificity:
+    code: LL
+    description: Low query specificity, low target specificity
+  listener_goal: explore and discover multiple songs from artists without specific constraints
+  listener_expertise: low
+  queries:
+    initial:
+      - example: "More songs by this artist"
+        reaction:
+          - sql(artist_name = current_artist)
+          - embsim(metadata)
+      - example: "Show me some good artists"
+        reaction:
+          - sql(popularity > 60)
+          - embsim(metadata)
+    iteration:
+      - example: "Similar artists to this one"
+        reaction:
+          - embsim(metadata)
+          - embsim(coocur)
+      - example: "Yes, this style of music is what I like"
+        reaction:
+          - embsim(metadata)
+          - embsim(audio)
+          - attend(audio)
+    achieved:
+      - example: "Perfect! I love discovering new artists like this"
+        reaction:
+          - embsim(metadata)
+          - embsim(coocur)
+      - example: "Show me their most popular songs"
+        reaction:
+          - sql(popularity, artist_name=matched_artist, order_by=desc)
+
+- name: Conversational Goal H-HL
+  category:
+    code: H
+    description: Artist & Discography Discovery
+  specificity:
+    code: HL
+    description: High query specificity, low target specificity
+  listener_goal: find multiple songs from artists with specific characteristics or career phases
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "I want female indie rock artists from the 2000s who write their own songs"
+        reaction:
+          - sql(tags contains "female indie rock")
+          - sql(track_release_date between "2000-2009")
+          - bm25(tags, "songwriter")
+      - example: "Show me jazz artists who transitioned from bebop to fusion in the 70s"
+        reaction:
+          - sql(tags contains "jazz bebop fusion")
+          - sql(track_release_date between "1970-1979")
+          - embsim(metadata)
+    iteration:
+      - example: "Include their early work too, not just the famous period"
+        reaction:
+          - sql(track_release_date, artist_name=matched_artist, order_by=asc)
+          - embsim(metadata)
+      - example: "Perfect! Show me their evolution over time"
+        reaction:
+          - sql(track_release_date, artist_name=matched_artist, order_by=asc)
+          - embsim(metadata)
+    achieved:
+      - example: "This is exactly the type of artist discovery I wanted"
+        reaction:
+          - embsim(metadata)
+          - embsim(coocur)
+      - example: "Now show me contemporary artists doing similar work"
+        reaction:
+          - sql(track_release_date > 2010)
+          - embsim(metadata)
+          - embsim(audio)
+
+- name: Conversational Goal H-LH
+  category:
+    code: H
+    description: Artist & Discography Discovery
+  specificity:
+    code: LH
+    description: Low query specificity, high target specificity
+  listener_goal: identify one specific artist or find their breakthrough song from vague memory
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "That female singer... alternative rock, maybe from the 90s?"
+        reaction:
+          - sql(tags contains "female alternative rock")
+          - sql(track_release_date between "1990-1999")
+          - embsim(metadata)
+      - example: "That famous jazz trumpet player... Miles something?"
+        reaction:
+          - bm25(artist_name, "Miles jazz trumpet", fuzzy=true)
+          - embsim(metadata)
+          - attend(text.metadata)
+    iteration:
+      - example: "Yes! Now play their most famous song"
+        reaction:
+          - sql(popularity, artist_name=matched_artist, order_by=desc, limit=1)
+      - example: "That's it! Kind of Blue! Classic album"
+        reaction:
+          - sql(album_name="Kind of Blue")
+          - embsim(metadata)
+    achieved:
+      - example: "Perfect! That's exactly the artist I was thinking of"
+        reaction:
+          - confirm_artist_identification=true
+      - example: "Perfect! That's exactly what I was trying to remember"
+        reaction:
+          - confirm_album_identification=true
+
+- name: Conversational Goal H-HH
+  category:
+    code: H
+    description: Artist & Discography Discovery
+  specificity:
+    code: HH
+    description: High query specificity, high target specificity
+  listener_goal: find one specific song by exact artist and title
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "Play 'Bohemian Rhapsody' by Queen"
+        reaction:
+          - sql(track_name="Bohemian Rhapsody" AND artist_name="Queen")
+      - example: "I want Miles Davis, 'Kind of Blue' album, track 3"
+        reaction:
+          - sql(artist_name="Miles Davis" AND album_name="Kind of Blue" AND track_number=3)
+    iteration:
+      - example: "Perfect! That's exactly what I wanted"
+        reaction:
+          - confirm_exact_match=true
+      - example: "That's exactly the specific recording I wanted"
+        reaction:
+          - confirm_exact_metadata=true
+    achieved:
+      - example: "Great! Now give me more classic rock by Queen"
+        reaction:
+          - sql(artist_name="Queen")
+          - embsim(audio)
+          - embsim(coocur)
+      - example: "Perfect! This is the definitive version"
+        reaction:
+          - embsim(metadata)
+
+- name: Conversational Goal I-LL
+  category:
+    code: I
+    description: Cultural & Geographic
+  specificity:
+    code: LL
+    description: Low query specificity, low target specificity
+  listener_goal: discover music from diverse, non-Western cultures, focusing on rhythmic, danceable tracks
+  listener_expertise: low
+  queries:
+    initial:
+      - example: "Music from other cultures"
+        reaction:
+          - embsim(tags, filter_non_western=true)
+          - sql(tags not contains "western")
+      - example: "I want to hear some global music"
+        reaction:
+          - embsim(tags, target="world music international")
+          - sql(tags not contains "US UK")
+    iteration:
+      - example: "Something rhythmic, good for dancing"
+        reaction:
+          - sql(tempo > 100)
+          - bm25(tags, "dance rhythm")
+          - embsim(audio)
+      - example: "This makes me want to move! Very cool"
+        reaction:
+          - embsim(audio)
+          - embsim(tags)
+          - attend(audio)
+    achieved:
+      - example: "Perfect! I love exploring music from around the world"
+        reaction:
+          - embsim(tags)
+          - embsim(coocur)
+      - example: "Learn about this musical tradition and its origins"
+        reaction:
+          - bm25(caption, identified_culture + "music history")
+          - attend(text.metadata)
+
+- name: Conversational Goal I-HL
+  category:
+    code: I
+    description: Cultural & Geographic
+  specificity:
+    code: HL
+    description: High query specificity, low target specificity
+  listener_goal: find music that is a fusion of West African polyrhythms and jazz improvisation, recorded after 2000
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "I want West African polyrhythms blended with jazz improvisation, recorded after 2000"
+        reaction:
+          - bm25(tags, "West African polyrhythm jazz")
+          - sql(track_release_date > 2000)
+          - embsim(audio)
+          - attend(audio)
+      - example: "Find me some contemporary Latin American folk music with electronic elements"
+        reaction:
+          - bm25(tags, "Latin American folk electronic")
+          - sql(track_release_date > 2010)
+          - embsim(audio)
+    iteration:
+      - example: "More emphasis on traditional instruments"
+        reaction:
+          - sql(tags contains "traditional instruments")
+          - embsim(audio)
+          - attend(audio)
+      - example: "Beautiful cultural fusion! Exactly what I was looking for"
+        reaction:
+          - embsim(audio)
+          - embsim(tags)
+    achieved:
+      - example: "This captures the essence of that specific cultural blend"
+        reaction:
+          - embsim(audio)
+          - embsim(tags)
+          - embsim(coocur)
+      - example: "Explore other African-jazz fusions from different regions"
+        reaction:
+          - bm25(tags, "African jazz fusion")
+          - embsim(tags)
+
+- name: Conversational Goal I-LH
+  category:
+    code: I
+    description: Cultural & Geographic
+  specificity:
+    code: LH
+    description: Low query specificity, high target specificity
+  listener_goal: find one specific international hit song from a few years ago, remembered by its catchiness and danceability
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "That foreign song that was huge a few years ago... very catchy, dance-y"
+        reaction:
+          - bm25(tags, "foreign international hit catchy dance")
+          - sql(popularity > 80 AND track_release_date between "2015-2022")
+      - example: "I'm trying to find a popular song from a non-English speaking country, it was trending everywhere"
+        reaction:
+          - bm25(tags, "international trending hit non-english")
+          - sql(popularity > 75 AND lyrics not contains "english")
+    iteration:
+      - example: "Not English lyrics, maybe Latin or Asian"
+        reaction:
+          - sql(tags contains "Latin" OR tags contains "Asian" OR tags contains "non-English")
+          - embsim(lyrics)
+      - example: "Yes! It had a distinctive music video too"
+        reaction:
+          - bm25(youtube_url, "music video distinctive")
+          - embsim(image)
+          - attend(image)
+    achieved:
+      - example: "YES! That global hit! I finally remembered it"
+        reaction:
+          - confirm_international_hit=true
+      - example: "More international chart-toppers from recent years"
+        reaction:
+          - sql(popularity > 70 AND track_release_date > 2020)
+          - embsim(coocur)
+
+- name: Conversational Goal I-HH
+  category:
+    code: I
+    description: Cultural & Geographic
+  specificity:
+    code: HH
+    description: High query specificity, high target specificity
+  listener_goal: play a specific globally popular song by exact title and artist
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "Play 'Despacito' by Luis Fonsi"
+        reaction:
+          - sql(track_name="Despacito" AND artist_name="Luis Fonsi")
+      - example: "Can you play 'Gangnam Style' by PSY?"
+        reaction:
+          - sql(track_name="Gangnam Style" AND artist_name="PSY")
+    iteration:
+      - example: "Perfect, that's the one"
+        reaction:
+          - confirm_cultural_moment=true
+    achieved:
+      - example: "That's the global phenomenon I was looking for"
+        reaction:
+          - embsim(metadata)
+      - example: "Other Spanish-language global hits like this"
+        reaction:
+          - sql(tags contains "Spanish" AND popularity > 70)
+          - embsim(coocur)
+
+- name: Conversational Goal J-LL
+  category:
+    code: J
+    description: Social & Popularity Context
+  specificity:
+    code: LL
+    description: Low query specificity, low target specificity
+  listener_goal: discover multiple songs that are socially relevant, popular, or trending
+  listener_expertise: low
+  queries:
+    initial:
+      - example: "What's popular that I might like?"
+        reaction:
+          - sql(popularity > 70)
+          - embsim(coocur)
+      - example: "Songs that are having a moment right now"
+        reaction:
+          - sql(popularity > 60)
+          - sql(track_release_date > 2020)
+    iteration:
+      - example: "More mainstream but still good quality"
+        reaction:
+          - sql(popularity > 50)
+          - embsim(audio)
+          - attend(audio)
+      - example: "Yes, this is what everyone's talking about"
+        reaction:
+          - embsim(coocur)
+          - attend(text.tags)
+    achieved:
+      - example: "Perfect! I can see why these are popular"
+        reaction:
+          - embsim(coocur)
+          - sql(popularity, order_by=desc)
+      - example: "Great! Now I'm caught up with what's trending"
+        reaction:
+          - sql(popularity > 60)
+          - embsim(coocur)
+
+- name: Conversational Goal J-HL
+  category:
+    code: J
+    description: Social & Popularity Context
+  specificity:
+    code: HL
+    description: High query specificity, low target specificity
+  listener_goal: find multiple songs that are popular within specific demographics or music communities
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "I want songs that are popular with indie music fans but not mainstream radio"
+        reaction:
+          - sql(tags contains "indie")
+          - sql(popularity between 40-70)
+          - embsim(coocur)
+      - example: "Show me what's trending in the jazz community, not just overall charts"
+        reaction:
+          - sql(tags contains "jazz")
+          - sql(popularity > 30)
+          - embsim(metadata)
+    iteration:
+      - example: "More underground but still well-regarded"
+        reaction:
+          - sql(popularity between 20-50)
+          - embsim(coocur)
+          - attend(text.tags)
+      - example: "Perfect! This is exactly the niche popularity I wanted"
+        reaction:
+          - embsim(coocur)
+          - embsim(tags)
+    achieved:
+      - example: "This is exactly the right level of popular but not overplayed"
+        reaction:
+          - embsim(coocur)
+          - embsim(tags)
+      - example: "Great! Now I know what the real music fans are listening to"
+        reaction:
+          - embsim(coocur)
+          - embsim(metadata)
+
+- name: Conversational Goal J-LH
+  category:
+    code: J
+    description: Social & Popularity Context
+  specificity:
+    code: LH
+    description: Low query specificity, high target specificity
+  listener_goal: find one specific song that was popular at a particular time but can't remember details
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "That song everyone was listening to a few years ago... really catchy"
+        reaction:
+          - sql(popularity > 60)
+          - sql(track_release_date between "2018-2022")
+          - embsim(coocur)
+      - example: "There was this viral song on social media... upbeat, maybe electronic"
+        reaction:
+          - sql(popularity > 70)
+          - sql(tags contains "electronic upbeat")
+          - embsim(audio)
+    iteration:
+      - example: "Yes, it was everywhere for a while"
+        reaction:
+          - sql(popularity > 80)
+          - embsim(coocur)
+      - example: "That's it! It was constantly on the radio"
+        reaction:
+          - sql(popularity > 85)
+          - embsim(coocur)
+    achieved:
+      - example: "YES! That's the song everyone was obsessed with!"
+        reaction:
+          - confirm_popularity_match=true
+      - example: "Perfect! That was the viral hit I was thinking of"
+        reaction:
+          - confirm_trend_match=true
+
+- name: Conversational Goal J-HH
+  category:
+    code: J
+    description: Social & Popularity Context
+  specificity:
+    code: HH
+    description: High query specificity, high target specificity
+  listener_goal: find one specific song that reached a particular chart position or popularity milestone
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "Play the song that was #1 in 2019 with the distinctive bass line"
+        reaction:
+          - sql(popularity > 90)
+          - sql(track_release_date between "2019-2019")
+          - bm25(tags, "bass line")
+      - example: "Find the most popular indie rock song from 2020"
+        reaction:
+          - sql(tags contains "indie rock")
+          - sql(track_release_date between "2020-2020")
+          - sql(popularity, order_by=desc, limit=1)
+    iteration:
+      - example: "That's exactly the chart-topper I meant"
+        reaction:
+          - confirm_chart_position=true
+    achieved:
+      - example: "Perfect! That was the biggest hit of that year"
+        reaction:
+          - embsim(coocur)
+          - sql(popularity, order_by=desc)
+      - example: "Great! Now show me other songs from that same chart period"
+        reaction:
+          - sql(track_release_date=matched_date)
+          - sql(popularity > 70)
+
+- name: Conversational Goal K-LL
+  category:
+    code: K
+    description: Temporal & Era Discovery
+  specificity:
+    code: LL
+    description: Low query specificity, low target specificity
+  listener_goal: discover multiple songs from a broad time period without specific constraints
+  listener_expertise: low
+  queries:
+    initial:
+      - example: "Play some classic music"
+        reaction:
+          - sql(track_release_date < 1990)
+          - embsim(metadata)
+      - example: "I want to hear some old songs"
+        reaction:
+          - sql(track_release_date < 1980)
+          - embsim(coocur)
+    iteration:
+      - example: "More from the golden era of this genre"
+        reaction:
+          - embsim(metadata)
+          - embsim(coocur)
+      - example: "Yes, this captures that classic sound"
+        reaction:
+          - embsim(audio)
+          - embsim(metadata)
+          - attend(audio)
+    achieved:
+      - example: "Perfect! This is what I think of as timeless music"
+        reaction:
+          - embsim(metadata)
+          - embsim(coocur)
+      - example: "Great! I love exploring music from different eras"
+        reaction:
+          - sql(track_release_date, order_by=asc)
+          - embsim(metadata)
+
+- name: Conversational Goal K-HL
+  category:
+    code: K
+    description: Temporal & Era Discovery
+  specificity:
+    code: HL
+    description: High query specificity, low target specificity
+  listener_goal: find multiple songs from specific time periods with particular characteristics
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "I want psychedelic rock from 1967-1969, the peak of the Summer of Love era"
+        reaction:
+          - sql(tags contains "psychedelic rock")
+          - sql(track_release_date between "1967-1969")
+          - embsim(metadata)
+      - example: "Show me new wave music from the early 80s, specifically 1980-1983"
+        reaction:
+          - sql(tags contains "new wave")
+          - sql(track_release_date between "1980-1983")
+          - embsim(audio)
+    iteration:
+      - example: "Include the underground scenes, not just the mainstream hits"
+        reaction:
+          - sql(popularity < 70)
+          - embsim(metadata)
+          - attend(text.metadata)
+      - example: "Perfect! This captures the essence of that exact era"
+        reaction:
+          - embsim(metadata)
+          - embsim(audio)
+    achieved:
+      - example: "This is exactly the sound of that time period I was looking for"
+        reaction:
+          - embsim(metadata)
+          - embsim(coocur)
+      - example: "Great! Now show me how this influenced later decades"
+        reaction:
+          - sql(track_release_date > matched_era_end)
+          - embsim(audio)
+          - embsim(metadata)
+
+- name: Conversational Goal K-LH
+  category:
+    code: K
+    description: Temporal & Era Discovery
+  specificity:
+    code: LH
+    description: Low query specificity, high target specificity
+  listener_goal: find one specific song that captures a particular era's sound from vague memory
+  listener_expertise: neutral
+  queries:
+    initial:
+      - example: "That classic 80s sound I remember... very distinctive"
+        reaction:
+          - sql(track_release_date between "1980-1989")
+          - embsim(audio)
+          - attend(audio)
+      - example: "Something that screams early 2000s... you know the sound"
+        reaction:
+          - sql(track_release_date between "2000-2005")
+          - embsim(audio)
+    iteration:
+      - example: "Yes, that's the exact 80s vibe I was thinking of"
+        reaction:
+          - embsim(audio)
+          - embsim(metadata)
+      - example: "Perfect! That's so 2000s it hurts"
+        reaction:
+          - embsim(audio)
+          - embsim(metadata)
+    achieved:
+      - example: "YES! That's the quintessential sound of that era"
+        reaction:
+          - confirm_era_match=true
+      - example: "Perfect! That song defines that time period"
+        reaction:
+          - confirm_temporal_match=true
+
+- name: Conversational Goal K-HH
+  category:
+    code: K
+    description: Temporal & Era Discovery
+  specificity:
+    code: HH
+    description: High query specificity, high target specificity
+  listener_goal: find one specific song from an exact year or historical moment
+  listener_expertise: high
+  queries:
+    initial:
+      - example: "Play the song that defined summer 1969, the Woodstock anthem"
+        reaction:
+          - sql(track_release_date="1969")
+          - bm25(tags, "Woodstock anthem summer")
+          - embsim(metadata)
+      - example: "I want the song that was playing when the Berlin Wall fell in 1989"
+        reaction:
+          - sql(track_release_date="1989")
+          - bm25(tags, "Berlin Wall freedom")
+          - embsim(metadata)
+    iteration:
+      - example: "That's exactly the historical moment I meant"
+        reaction:
+          - confirm_historical_match=true
+    achieved:
+      - example: "Perfect! That song captures that exact moment in history"
+        reaction:
+          - embsim(metadata)
+          - embsim(coocur)
+      - example: "Great! Now show me other songs from that pivotal year"
+        reaction:
+          - sql(track_release_date=matched_year)
+          - embsim(metadata)

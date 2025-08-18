@@ -1,0 +1,28 @@
+[project]
+name = "datagen-talkplay2-public"
+version = "0.1.0"
+description = "Public, minimal generator for TalkPlay v2 conversations"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "TalkPlay.ai" }]
+license = { text = "MIT" }
+
+dependencies = [
+  "google-genai>=0.6.0",
+  "pydantic>=2.8.2",
+  "tqdm>=4.66.4",
+  "PyYAML>=6.0.1",
+]
+
+[project.scripts]
+ tp2dg-generate = "tp2dg.call_gemini:main"
+ tp2dg-summary = "tp2dg.evaluation.summary:main"
+ tp2dg-eval = "tp2dg.evaluation.run_eval:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tp2dg*"] 

@@ -1,0 +1,6 @@
+{
+  "users": [
+    {"user_id": "u1", "age_group": "20s", "gender": "male", "country": "US", "preferred_language": "English"},
+    {"user_id": "u2", "age_group": "30s", "gender": "female", "country": "KR", "preferred_language": "Korean"}
+  ]
+} 

@@ -1,0 +1,12 @@
+{
+  "tracks": [
+    {"track_id": "t1", "title": "Sunrise Drive", "artist": "Amber Sky", "genre": "pop", "audio_path": "assets/test-audio-1s.mp3", "image_path": "assets/test-image.jpg"},
+    {"track_id": "t2", "title": "Blue Neon", "artist": "City Waves", "genre": "synthwave", "audio_path": "assets/test-audio-1s.mp3", "image_path": "assets/test-image.jpg"},
+    {"track_id": "t3", "title": "Soft Rain", "artist": "Quiet Fields", "genre": "ambient", "audio_path": "assets/test-audio-1s.mp3", "image_path": "assets/test-image.jpg"},
+    {"track_id": "t4", "title": "Run Free", "artist": "Night Runner", "genre": "rock", "audio_path": "assets/test-audio-1s.mp3", "image_path": "assets/test-image.jpg"},
+    {"track_id": "t5", "title": "Coffee Break", "artist": "Lo Key", "genre": "lofi", "audio_path": "assets/test-audio-1s.mp3", "image_path": "assets/test-image.jpg"},
+    {"track_id": "t6", "title": "Golden Hour", "artist": "Sunset Club", "genre": "pop", "audio_path": "assets/test-audio-1s.mp3", "image_path": "assets/test-image.jpg"},
+    {"track_id": "t7", "title": "Northern Lights", "artist": "Polar Rise", "genre": "electronic", "audio_path": "assets/test-audio-1s.mp3", "image_path": "assets/test-image.jpg"},
+    {"track_id": "t8", "title": "Echo Park", "artist": "Circuit Bloom", "genre": "indie", "audio_path": "assets/test-audio-1s.mp3", "image_path": "assets/test-image.jpg"}
+  ]
+} 
