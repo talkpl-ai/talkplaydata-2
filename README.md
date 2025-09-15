@@ -1,7 +1,7 @@
 # TalkPlayData 2: An Agentic Synthetic Data Pipeline for Trimodal and Conversational Music Recommendation
 
 
-[![arXiv](https://img.shields.io/badge/arXiv-2509.09685-blue.svg)](#)
+[![arXiv](https://img.shields.io/badge/arXiv-2509.09685-blue.svg)](https://arxiv.org/abs/2509.09685)
 [![Datasets](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Datasets-yellow)](https://huggingface.co/datasets/talkpl-ai/TalkPlayData-2)
 
 *talk to AI to play music!*
