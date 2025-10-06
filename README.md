@@ -72,11 +72,11 @@ Quickstart:
 │          • ProfileLLM.generate_from_tracks(liked, audio, image)               │
 │          • ConversationGoalLLM.generate_from_recommendation_pool(pool, ...)   │
 │       3) Initialize chats                                                     │
-│          • ChatSessionManager.initialize_recsys_session(...)                   │
+│          • ChatSessionManager.initialize_recsys_session(...)                  │
 │              ↳ prompts.recsys_llm.system.*                                    │
-│          • ChatSessionManager.initialize_listener_session(...)                 │
+│          • ChatSessionManager.initialize_listener_session(...)                │
 │              ↳ prompts.listener_llm.system.*                                  │
-│          • RecsysLLM.set_chat_session(chat), ListenerLLM.set_chat_session(chat)│
+│          • RecsysLLM.set_chat_session(chat),ListenerLLM.set_chat_session(chat)│
 │       4) Listener starts                                                      │
 │          • ListenerLLM.get_initial_request(initial_query_examples, ...)       │
 │              ↳ prompts.listener_llm.query.listener_first_turn                 │
@@ -95,11 +95,11 @@ Quickstart:
                                     │
                                     ▼
 ┌───────────────────────────────────────────────────────────────────────────────┐
-│ Persist outputs                                                                │
-│  tp2dg/conversation_orchestrator.py → save_outputs(outputs, out_dir)           │
-│   - profiling.json                                                             │
-│   - conversation_goal.json                                                     │
-│   - chat.json                                                                  │
+│ Persist outputs                                                               │
+│  tp2dg/conversation_orchestrator.py → save_outputs(outputs, out_dir)          │
+│   - profiling.json                                                            │
+│   - conversation_goal.json                                                    │
+│   - chat.json                                                                 │
 └───────────────────────────────────────────────────────────────────────────────┘
 
 Notes
