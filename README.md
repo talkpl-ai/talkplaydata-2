@@ -114,6 +114,9 @@ Notes
 ## Dataset
 TalkPlayData 2 is available on [HuggingFace](https://huggingface.co/datasets/talkpl-ai/TalkPlayData-2)
 
+## License
+The contents of this repository are made available under the [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International license](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+
 ## Paper
 [arxiv:2509.09685](https://arxiv.org/abs/2509.09685)
 
